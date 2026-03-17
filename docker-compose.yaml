@@ -1,0 +1,43 @@
+services:
+    financial-events-service:
+        hostname: financial-events-service-php
+        build: docker/php-fpm
+        container_name: financial-events-service-php
+        volumes:
+            - ./:/var/www/app
+        expose:
+            - 9000
+        depends_on:
+            - financial-events-service-postgres
+        networks:
+            - app-network
+
+    financial-events-service-nginx:
+        hostname: financial-events-service-nginx
+        build: docker/nginx
+        container_name: financial-events-service-nginx
+        ports:
+            - '8081:80'
+        volumes:
+            - ./:/var/www/app
+            - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+        depends_on:
+            - financial-events-service
+        networks:
+            - app-network
+
+    financial-events-service-postgres:
+        container_name: financial-events-service-postgres
+        image: postgres:15.0
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        networks:
+            - app-network
+        ports:
+            - '5432:5432'
+
+networks:
+    app-network:
+        driver: bridge
