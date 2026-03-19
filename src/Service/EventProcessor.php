@@ -3,14 +3,12 @@
 namespace App\Service;
 
 use App\Dto\EventDTO;
-use App\Entity\AccountingTransaction;
 use App\Entity\EventProcessed;
-use App\Enum\AccountType;
-use App\Enum\DirectionType;
-use App\Enum\EventType;
+use App\Exception\DatabasePersistenceException;
+use App\Exception\DuplicateEventException;
+use App\Factory\TransactionFactory;
 use App\Repository\EventProcessedRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use DateTimeImmutable;
 
 readonly class EventProcessor
 {
@@ -22,82 +20,25 @@ readonly class EventProcessor
     public function processEvent(EventDTO $eventDTO): void
     {
         if ($this->eventProcessedRepository->existsByEventId($eventDTO->eventId)) {
-            throw new \RuntimeException('dublicated');
+            throw new DuplicateEventException();
         }
 
-        $type = EventType::from($eventDTO->type);
-
-        $amount = number_format($eventDTO->amount, 2, '.', '');
-        $currency = strtoupper($eventDTO->currency);
-        $eventTimestamp = new DateTimeImmutable($eventDTO->timestamp);
-
-        $transactions = $this->buildTransaction($type, $amount, $currency, $eventTimestamp);
-
         $eventProcessed = new EventProcessed($eventDTO->eventId, $eventDTO->toArray());
+        $transactions = TransactionFactory::build($eventDTO);
 
         foreach ($transactions as $transaction) {
             $eventProcessed->addTransaction($transaction);
         }
-        $this->entityManager->persist($eventProcessed);
-        $this->entityManager->flush();
+
+        $this->entityManager->beginTransaction();
+        try {
+            $this->entityManager->persist($eventProcessed);
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+        } catch (\Throwable) {
+            $this->entityManager->rollback();
+            throw new DatabasePersistenceException();
+        }
     }
 
-
-    private function buildTransaction(
-        EventType $type,
-        string $amount,
-        string $currency,
-        $eventTimestamp,
-    ): array {
-        return match ($type) {
-            EventType::PAYMENT_RECEIVED => [
-                new AccountingTransaction(
-                    AccountType::USER_ACCOUNT,
-                    DirectionType::DEBIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-                new AccountingTransaction(
-                    AccountType::SYSTEM_CASH_ACCOUNT,
-                    DirectionType::CREDIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-            ],
-            EventType::PAYMENT_SENT => [
-                new AccountingTransaction(
-                    AccountType::SYSTEM_CASH_ACCOUNT,
-                    DirectionType::DEBIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-                new AccountingTransaction(
-                    AccountType::USER_ACCOUNT,
-                    DirectionType::CREDIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-            ],
-            EventType::FEE_CHARGED => [
-                new AccountingTransaction(
-                    AccountType::USER_ACCOUNT,
-                    DirectionType::DEBIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-                new AccountingTransaction(
-                    AccountType::FEE_ACCOUNT,
-                    DirectionType::CREDIT,
-                    $amount,
-                    $currency,
-                    $eventTimestamp,
-                ),
-            ],
-        };
-    }
 }
