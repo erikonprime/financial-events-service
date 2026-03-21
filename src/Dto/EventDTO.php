@@ -16,7 +16,7 @@ readonly class EventDTO
         #[Assert\Positive(message: 'amount must be positive')]
         public float $amount = 0.0,
         #[Assert\NotBlank(message: 'currency is required')]
-        public string $currency,
+        public string $currency = '',
         #[Assert\NotBlank(message: 'timestamp is required')]
         public string $timestamp = '',
     ) {}
