@@ -76,15 +76,15 @@ Retrieves all recorded transactions for a specific account.
 - **Example Response**:
 ```json
 {
-  "account": "system_cash_account",
-  "transactions": [
-    {
-      "id": 1,
-      "amount": 1500.00,
-      "currency": "USD",
-      "direction": "credit",
-      "timestamp": "2026-03-21T19:00:00Z"
-    }
-  ]
+    "account": "system_cash_account",
+    "transactions": [
+        {
+            "account": "system_cash_account",
+            "direction": "credit",
+            "amount": 1500.00,
+            "currency": "USD",
+            "timestamp": "2026-03-21T19:00:00Z"
+        }
+    ]
 }
 ```
