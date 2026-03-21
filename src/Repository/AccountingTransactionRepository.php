@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\AccountingTransaction;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Enum\DirectionType;
+
 
 /**
  * @extends ServiceEntityRepository<AccountingTransaction>
@@ -16,28 +18,14 @@ class AccountingTransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, AccountingTransaction::class);
     }
 
-    //    /**
-    //     * @return AccountingTransaction[] Returns an array of AccountingTransaction objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function getBalanceByDirectionType(string $account, DirectionType $directionType): int
+    {
+        $qb = $this
+            ->createQueryBuilder('t')
+            ->select('SUM(t.amount)')
+            ->where('t.account = :account')->setParameter('account', $account)
+            ->andWhere('t.direction = :direction')->setParameter('direction', $directionType);
 
-    //    public function findOneBySomeField($value): ?AccountingTransaction
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return ($qb->getQuery()->getSingleScalarResult() ?: 0.00);
+    }
 }

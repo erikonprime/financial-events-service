@@ -7,6 +7,7 @@ use App\Enum\DirectionType;
 use App\Repository\AccountingTransactionRepository;
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: AccountingTransactionRepository::class)]
 class AccountingTransaction
@@ -21,18 +22,23 @@ class AccountingTransaction
     private ?EventProcessed $event = null;
 
     #[ORM\Column(length: 100, enumType: AccountType::class)]
+    #[Groups(['transaction:list'])]
     private AccountType $account;
 
     #[ORM\Column(length: 100, enumType: DirectionType::class)]
+    #[Groups(['transaction:list'])]
     private DirectionType $direction;
 
     #[ORM\Column(type: 'decimal', precision: 18, scale: 2)]
+    #[Groups(['transaction:list'])]
     private string $amount;
 
     #[ORM\Column(length: 3)]
+    #[Groups(['transaction:list'])]
     private string $currency;
 
     #[ORM\Column(type: 'datetime_immutable')]
+    #[Groups(['transaction:list'])]
     private DateTimeImmutable $eventTimestamp;
 
     #[ORM\Column(type: 'datetime_immutable')]
