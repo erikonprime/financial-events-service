@@ -5,7 +5,7 @@ namespace App\Exception;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
-class DatabasePersistenceException extends Exception implements ApiExceptionI
+class DatabasePersistenceException extends Exception implements IApiException
 {
     public function __construct(string $message = 'Database persistence error')
     {

@@ -5,7 +5,7 @@ namespace App\Exception;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
-class DuplicateEventException extends Exception implements ApiExceptionI
+class DuplicateEventException extends Exception implements IApiException
 {
     public function __construct(string $message = 'Event already processed')
     {

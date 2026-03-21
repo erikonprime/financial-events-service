@@ -5,7 +5,7 @@ namespace App\Exception;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
 
-class ValidationException extends Exception implements ApiValidationExceptionI
+class ValidationException extends Exception implements IApiValidationException
 {
     public function __construct(private readonly array $violations, string $message = 'Validation error')
     {

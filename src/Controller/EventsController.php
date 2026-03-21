@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Dto\EventDTO;
-use App\Exception\ApiExceptionI;
-use App\Exception\ApiValidationExceptionI;
+use App\Exception\IApiException;
+use App\Exception\IApiValidationException;
 use App\Service\EventProcessor;
 use App\Validator\EventValidator;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,9 +31,9 @@ class EventsController extends AbstractController
             $this->eventProcessor->processEvent($eventDto);
         } catch (\JsonException $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (ApiExceptionI $e) {
+        } catch (IApiException $e) {
             return $this->json($e->getMessage(), $e->getCode());
-        } catch (ApiValidationExceptionI $e) {
+        } catch (IApiValidationException $e) {
             return $this->json($e->toArray(), $e->getCode());
         } catch (\Throwable $e) {
             return $this->json($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);

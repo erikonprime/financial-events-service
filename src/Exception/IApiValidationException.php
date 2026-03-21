@@ -2,7 +2,7 @@
 
 namespace App\Exception;
 
-interface ApiValidationExceptionI
+interface IApiValidationException
 {
     public function toArray(): array;
 }

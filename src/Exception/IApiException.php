@@ -2,4 +2,4 @@
 
 namespace App\Exception;
 
-interface ApiExceptionI {}
+interface IApiException {}
