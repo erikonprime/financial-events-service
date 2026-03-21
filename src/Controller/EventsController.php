@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 
 class EventsController extends AbstractController
 {
@@ -22,6 +24,20 @@ class EventsController extends AbstractController
     ) {}
 
     #[Route('/events', name: 'event_store', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Store a new financial event',
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(ref: new Model(type: EventDTO::class))
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Event processed successfully'),
+            new OA\Response(response: 400, description: 'Invalid input'),
+            new OA\Response(response: 500, description: 'Internal server error'),
+            new OA\Response(response: 409, description: 'Event already processed'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    #[OA\Tag(name: 'Events')]
     public function __invoke(Request $request): Response
     {
         try {

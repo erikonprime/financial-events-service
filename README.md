@@ -88,3 +88,7 @@ Retrieves all recorded transactions for a specific account.
     ]
 }
 ```
+
+## Help
+
+* [Documentation](http://localhost:8081/api/doc)

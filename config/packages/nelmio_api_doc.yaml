@@ -1,0 +1,10 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Financial Events Service
+            description: API for processing financial events and retrieving account balances.
+            version: 1.0.0
+    areas: # This defines which routes are documented
+        path_patterns:
+            - ^/events
+            - ^/accounts
