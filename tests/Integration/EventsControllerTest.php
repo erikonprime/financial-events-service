@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 class EventsControllerTest extends WebTestCase
 {
 
-    #[DataProvider('dataTestIntegerAdd')]
+    #[DataProvider('dataTestCreatesTransactions')]
     public function testCreatesTransactions(
         array $payload,
         string $eventId,
@@ -33,7 +33,7 @@ class EventsControllerTest extends WebTestCase
         $this->assertTransactions($eventId, $debitAccount, $creditAccount);
     }
 
-    public static function dataTestIntegerAdd(): array
+    public static function dataTestCreatesTransactions(): array
     {
         return [
             [
@@ -104,12 +104,12 @@ class EventsControllerTest extends WebTestCase
 
         /** @var AccountingTransaction $debitAccountTransaction */
         /** @var AccountingTransaction $creditAccountTransaction */
-        [$debitAccountTransaction, $creditAccountTransaction] = $transactions;
+        [$creditAccountTransaction, $debitAccountTransaction] = $transactions;
 
         //credit
-        self::assertSame($creditAccount, $debitAccountTransaction->getAccount()->value);
+        self::assertSame($creditAccount, $creditAccountTransaction->getAccount()->value);
         //debit
-        self::assertSame($debitAccount, $creditAccountTransaction->getAccount()->value);
+        self::assertSame($debitAccount, $debitAccountTransaction->getAccount()->value);
     }
 
 }

@@ -35,10 +35,14 @@ final class TransactionFactoryTest extends TestCase
         //credit
         self::assertSame(DirectionType::DEBIT, $debitAccountTransaction->getDirection());
         self::assertSame(AccountType::USER_ACCOUNT, $debitAccountTransaction->getAccount());
+        self::assertSame('CAD', $debitAccountTransaction->getCurrency());
+        self::assertSame(10.10, (float)$debitAccountTransaction->getAmount());
 
         //debit
         self::assertSame(DirectionType::CREDIT, $creditAccountTransaction->getDirection());
         self::assertSame(AccountType::SYSTEM_CASH_ACCOUNT, $creditAccountTransaction->getAccount());
+        self::assertSame('CAD', $creditAccountTransaction->getCurrency());
+        self::assertSame(10.10, (float)$creditAccountTransaction->getAmount());
     }
 
 }

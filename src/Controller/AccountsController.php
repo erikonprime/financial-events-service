@@ -25,7 +25,7 @@ class AccountsController extends AbstractController
 
         return $this->json([
             'account' => $account,
-            'balance' => $debitBalance - $creditBalance,
+            'balance' => $creditBalance - $debitBalance,
         ]);
     }
 

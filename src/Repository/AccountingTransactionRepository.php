@@ -18,7 +18,7 @@ class AccountingTransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, AccountingTransaction::class);
     }
 
-    public function getBalanceByDirectionType(string $account, DirectionType $directionType): int
+    public function getBalanceByDirectionType(string $account, DirectionType $directionType): float
     {
         $qb = $this
             ->createQueryBuilder('t')
