@@ -61,10 +61,15 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
+        "copy-test-db": [
+            "php -r \"file_exists('tests/data.db') || copy('tests/data.db.example', 'tests/data.db');\""
+        ],
         "post-install-cmd": [
+            "@copy-test-db",
             "@auto-scripts"
         ],
         "post-update-cmd": [
+            "@copy-test-db",
             "@auto-scripts"
         ]
     },
