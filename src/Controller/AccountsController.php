@@ -55,7 +55,7 @@ class AccountsController extends AbstractController
 
         return $this->json([
             'account' => $account,
-            'balance' => $creditBalance - $debitBalance,
+            'balance' => bcsub($creditBalance, $debitBalance, 2),
         ]);
     }
 

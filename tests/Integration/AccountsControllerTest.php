@@ -20,15 +20,14 @@ class AccountsControllerTest extends WebTestCase
     }
 
     #[DataProvider('dataTestGetBalance')]
-    public function testGetBalance(string $account, float $balance): void
+    public function testGetBalance(string $account, string $balance): void
     {
         $url = sprintf('/accounts/%s/balance', $account);
         $this->client->request('GET', $url);
         $response = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertResponseStatusCodeSame(Response::HTTP_OK);
-
         self::assertEquals($account, $response['account'] ?? '');
-        self::assertEqualsWithDelta($balance, $response['balance'], 0.01);
+        self::assertEquals($balance, $response['balance'] ?? '0.00');
     }
 
     public static function dataTestGetBalance(): array
@@ -36,15 +35,15 @@ class AccountsControllerTest extends WebTestCase
         return [
             [
                 'user_account',
-                -288.27,
+                '-288.27',
             ],
             [
                 'system_cash_account',
-                32.01,
+                '32.01',
             ],
             [
                 'fee_account',
-                256.26,
+                '256.26',
             ],
         ];
     }

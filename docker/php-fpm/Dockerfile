@@ -13,18 +13,19 @@ RUN apt-get update && apt-get install -y \
         libpq-dev \
         librabbitmq-dev \
         libssh-dev \
-    && docker-php-ext-install \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install \
         intl \
         opcache \
         pdo \
-        pdo_mysql \
         pdo_pgsql \
         zip \
+        bcmath \
     && pecl channel-update pecl.php.net \
-    && pecl install apcu memcached amqp-1.11.0 \
-    && docker-php-ext-enable apcu memcached amqp \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /var/www/app
+    && pecl install apcu memcached amqp xdebug \
+    && docker-php-ext-enable apcu memcached amqp xdebug
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www/app

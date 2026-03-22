@@ -20,7 +20,7 @@ class AccountingTransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, AccountingTransaction::class);
     }
 
-    public function getBalanceByDirectionType(string $account, DirectionType $directionType): float
+    public function getBalanceByDirectionType(string $account, DirectionType $directionType): string
     {
         $qb = $this
             ->createQueryBuilder('t')
@@ -28,6 +28,6 @@ class AccountingTransactionRepository extends ServiceEntityRepository
             ->where('t.account = :account')->setParameter('account', $account)
             ->andWhere('t.direction = :direction')->setParameter('direction', $directionType);
 
-        return ($qb->getQuery()->getSingleScalarResult() ?: 0.00);
+        return ((string)$qb->getQuery()->getSingleScalarResult() ?: '0.00');
     }
 }
