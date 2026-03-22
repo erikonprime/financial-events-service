@@ -72,8 +72,17 @@ Retrieves the current balance for a specific account.
 - **Example Response**:
 ```json
 {
-  "account": "system_cash_account",
-  "balance": 1500.00
+    "account": "user_account",
+    "result": [
+        {
+            "currency": "EUR",
+            "balance": "28012.34"
+        },
+        {
+            "currency": "GPT",
+            "balance": "-100.00"
+        }
+    ]
 }
 ```
 

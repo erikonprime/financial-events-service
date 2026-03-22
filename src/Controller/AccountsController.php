@@ -42,8 +42,18 @@ class AccountsController extends AbstractController
                 description: 'Returns the account balance',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'account', type: 'string', example: '12345'),
-                        new OA\Property(property: 'balance', type: 'number', format: 'float', example: 150.50)
+                        new OA\Property(property: 'account', type: 'string', example: 'user_account'),
+                        new OA\Property(
+                            property: 'result',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'currency', type: 'string', example: 'USD'),
+                                    new OA\Property(property: 'balance', type: 'string', example: '150.50')
+                                ],
+                                type: 'object'
+                            )
+                        )
                     ],
                     type: 'object'
                 )
