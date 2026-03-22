@@ -24,14 +24,23 @@ A Symfony-based microservice for processing financial events.
     ```bash
     docker exec -it financial-events-service-php composer install
     ```
+   
 4. **Execute migrations:**
     ```bash
     docker exec -it financial-events-service-php php bin/console doctrine:migrations:migrate
     ```
+   
 5. **Run tests:**
    ```bash
    docker exec -it financial-events-service-php php bin/phpunit
    ```
+   
+6. **Your API is available at:**
+*   http://localhost:8081
+   
+7. **Api Documentation:**
+* http://localhost:8081/api/doc
+   
 ## API Endpoints
 
 ### 1. Process Event
@@ -88,7 +97,3 @@ Retrieves all recorded transactions for a specific account.
     ]
 }
 ```
-
-## Help
-
-* [Documentation](http://localhost:8081/api/doc)
