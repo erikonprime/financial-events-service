@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\AccountingTransaction;
+use App\Enum\AccountType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use App\Enum\DirectionType;
 
 
 /**
@@ -20,14 +20,14 @@ class AccountingTransactionRepository extends ServiceEntityRepository
         parent::__construct($registry, AccountingTransaction::class);
     }
 
-    public function getBalanceByDirectionType(string $account, DirectionType $directionType): string
+    public function getBalancesByAccount(AccountType $account): array
     {
-        $qb = $this
-            ->createQueryBuilder('t')
-            ->select('SUM(t.amount)')
-            ->where('t.account = :account')->setParameter('account', $account)
-            ->andWhere('t.direction = :direction')->setParameter('direction', $directionType);
-
-        return ((string)$qb->getQuery()->getSingleScalarResult() ?: '0.00');
+        return $this->createQueryBuilder('t')
+            ->select('t.currency, t.direction, SUM(t.amount) as total')
+            ->where('t.account = :account')
+            ->setParameter('account', $account)
+            ->groupBy('t.currency, t.direction')
+            ->getQuery()
+            ->getResult();
     }
 }

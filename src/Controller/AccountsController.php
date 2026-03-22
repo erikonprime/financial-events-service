@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Enum\DirectionType;
 use App\Repository\AccountingTransactionRepository;
+use App\Service\BalanceCalculator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use App\Entity\AccountingTransaction;
+use App\Enum\AccountType;
+use Symfony\Component\HttpFoundation\Response;
 
 class AccountsController extends AbstractController
 {
 
     public function __construct(
         private readonly AccountingTransactionRepository $transactionRepository,
+        private readonly BalanceCalculator $balanceCalculator,
     ) {}
 
     #[Route('/accounts/{account}/balance', name: 'account_balance', methods: ['GET'])]
@@ -50,12 +53,17 @@ class AccountsController extends AbstractController
     #[OA\Tag(name: 'Accounts')]
     public function getBalance(string $account): JsonResponse
     {
-        $debitBalance = $this->transactionRepository->getBalanceByDirectionType($account, DirectionType::DEBIT);
-        $creditBalance = $this->transactionRepository->getBalanceByDirectionType($account, DirectionType::CREDIT);
+        $accountType = AccountType::tryFrom($account);
+
+        if ($accountType === null) {
+            return $this->json(['error' => 'Invalid account type'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $result = $this->balanceCalculator->calculateBalance($accountType);
 
         return $this->json([
             'account' => $account,
-            'balance' => bcsub($creditBalance, $debitBalance, 2),
+            'result' => $result,
         ]);
     }
 
@@ -76,7 +84,13 @@ class AccountsController extends AbstractController
     #[OA\Tag(name: 'Accounts')]
     public function getTransactions(string $account): JsonResponse
     {
-        $transactions = $this->transactionRepository->findBy(['account' => $account]);
+        $accountType = AccountType::tryFrom($account);
+
+        if ($accountType === null) {
+            return $this->json(['error' => 'Invalid account type'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $transactions = $this->transactionRepository->findBy(['account' => $accountType]);
 
         return $this->json([
             'account' => $account,

@@ -6,12 +6,20 @@ namespace App\Tests\Integration;
 
 use App\Entity\AccountingTransaction;
 use App\Entity\EventProcessed;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class EventsControllerTest extends WebTestCase
 {
+
+    private KernelBrowser $client;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+    }
 
     #[DataProvider('dataTestCreatesTransactions')]
     public function testCreatesTransactions(
@@ -20,8 +28,7 @@ class EventsControllerTest extends WebTestCase
         string $debitAccount,
         string $creditAccount,
     ): void {
-        $client = static::createClient();
-        $client->request(
+        $this->client->request(
             'POST',
             '/events',
             [],
@@ -112,4 +119,61 @@ class EventsControllerTest extends WebTestCase
         self::assertSame($debitAccount, $debitAccountTransaction->getAccount()->value);
     }
 
+    public function testInvalidJson(): void
+    {
+        $this->client->request(
+            'POST',
+            '/events',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            '{ qwerty }',
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function testInvalidPayload(): void
+    {
+        $payload = [
+            'event_id' => 'event_1',
+            'type' => 'payment_received',
+            'amount' => -10.0, // Negative amount
+            'currency' => 'EUR',
+            'timestamp' => '2026-01-01T00:00:00Z',
+        ];
+
+        $this->client->request(
+            'POST',
+            '/events',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function testUnknownType(): void
+    {
+        $payload = [
+            'event_id' => 'event_1',
+            'type' => 'unknown_event_type', // Unknown type
+            'amount' => 100.0,
+            'currency' => 'EUR',
+            'timestamp' => '2026-01-01T00:00:00Z',
+        ];
+
+        $this->client->request(
+            'POST',
+            '/events',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($payload, JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
 }

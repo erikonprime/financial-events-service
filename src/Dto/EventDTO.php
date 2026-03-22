@@ -4,11 +4,13 @@ namespace App\Dto;
 
 use App\Enum\EventType;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
 readonly class EventDTO
 {
     public function __construct(
         #[Assert\NotBlank(message: 'event_id is required')]
+        #[SerializedName('event_id')]
         public string $eventId = '',
         #[Assert\Choice(callback: [EventType::class, 'values'], message: 'Invalid event type')]
         public string $type = '',

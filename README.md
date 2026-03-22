@@ -35,7 +35,7 @@ A Symfony-based microservice for processing financial events.
    docker exec -it financial-events-service-php php bin/phpunit
    ```
    
-6. **Your API is available at:**
+6. **Microservice available at:**
 *   http://localhost:8081
    
 7. **Api Documentation:**

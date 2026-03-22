@@ -20,14 +20,31 @@ class AccountsControllerTest extends WebTestCase
     }
 
     #[DataProvider('dataTestGetBalance')]
-    public function testGetBalance(string $account, string $balance): void
+    public function testGetBalance(string $account, array $expectedResult): void
     {
         $url = sprintf('/accounts/%s/balance', $account);
         $this->client->request('GET', $url);
         $response = json_decode($this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertResponseStatusCodeSame(Response::HTTP_OK);
         self::assertEquals($account, $response['account'] ?? '');
-        self::assertEquals($balance, $response['balance'] ?? '0.00');
+
+        $actualBalances = [];
+        foreach ($response['result'] as $item) {
+            $actualBalances[$item['currency']] = $item['balance'];
+        }
+
+        foreach ($expectedResult as $currency => $expectedData) {
+            self::assertArrayHasKey(
+                $currency,
+                $actualBalances,
+                sprintf('Balance for currency "%s" not found in response.', $currency)
+            );
+            self::assertEquals(
+                $expectedData['balance'],
+                $actualBalances[$currency],
+                sprintf('Balance mismatch for currency "%s".', $currency)
+            );
+        }
     }
 
     public static function dataTestGetBalance(): array
@@ -35,15 +52,25 @@ class AccountsControllerTest extends WebTestCase
         return [
             [
                 'user_account',
-                '-288.27',
+                [
+                    'CAD' => ['currency' => 'CAD', 'balance' => '-78.25'],
+                    'EUR' => ['currency' => 'EUR', 'balance' => '-288.27'],
+                    'GBP' => ['currency' => 'GBP', 'balance' => '-292.00'],
+                ]
             ],
             [
                 'system_cash_account',
-                '32.01',
+                [
+                    'CAD' => ['currency' => 'CAD', 'balance' => '102.45'],
+                    'EUR' => ['currency' => 'EUR', 'balance' => '32.01'],
+                    'GBP' => ['currency' => 'GBP', 'balance' => '513.67'],
+                ]
             ],
             [
                 'fee_account',
-                '256.26',
+                [
+                    'EUR' => ['currency' => 'EUR', 'balance' => '256.26'],
+                ]
             ],
         ];
     }
@@ -74,6 +101,7 @@ class AccountsControllerTest extends WebTestCase
 
     private static function insertPaymentReceived(Connection $connection): void
     {
+        // EUR
         $connection->insert('event_processed', [
             'event_id' => 'evt_test_001',
             'payload' => json_encode(['type' => 'manual_insert']),
@@ -100,12 +128,69 @@ class AccountsControllerTest extends WebTestCase
             'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
             'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);
+
+        // GBP
+        $connection->insert('event_processed', [
+            'event_id' => 'evt_test_002',
+            'payload' => json_encode(['type' => 'manual_insert']),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+
+        $eventId = $connection->lastInsertId();
+
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'user_account',
+            'direction' => 'debit',
+            'amount' => '203.00',
+            'currency' => 'GBP',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'system_cash_account',
+            'direction' => 'credit',
+            'amount' => '235.45',
+            'currency' => 'GBP',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+
+        //CAD
+        $connection->insert('event_processed', [
+            'event_id' => 'evt_test_003',
+            'payload' => json_encode(['type' => 'manual_insert']),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+
+        $eventId = $connection->lastInsertId();
+
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'user_account',
+            'direction' => 'debit',
+            'amount' => '78.25',
+            'currency' => 'CAD',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'system_cash_account',
+            'direction' => 'credit',
+            'amount' => '102.45',
+            'currency' => 'CAD',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
     }
 
     private static function insertPaymentSent(Connection $connection): void
     {
+        // EUR
         $connection->insert('event_processed', [
-            'event_id' => 'evt_test_002',
+            'event_id' => 'evt_test_004',
             'payload' => json_encode(['type' => 'manual_insert']),
             'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);
@@ -130,12 +215,40 @@ class AccountsControllerTest extends WebTestCase
             'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
             'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);
+
+        // GBP
+        $connection->insert('event_processed', [
+            'event_id' => 'evt_test_005',
+            'payload' => json_encode(['type' => 'manual_insert']),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+
+        $eventId = $connection->lastInsertId();
+
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'user_account',
+            'direction' => 'debit',
+            'amount' => '89.00',
+            'currency' => 'GBP',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
+        $connection->insert('accounting_transaction', [
+            'event_id' => $eventId,
+            'account' => 'system_cash_account',
+            'direction' => 'credit',
+            'amount' => '278.22',
+            'currency' => 'GBP',
+            'event_timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+        ]);
     }
 
     private static function insertFeeCharged(Connection $connection): void
     {
         $connection->insert('event_processed', [
-            'event_id' => 'evt_test_003',
+            'event_id' => 'evt_test_006',
             'payload' => json_encode(['type' => 'manual_insert']),
             'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
         ]);
